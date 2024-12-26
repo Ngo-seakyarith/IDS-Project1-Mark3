@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 # Load Data
 @st.cache_data
 def load_data():
-    data_path = "data.csv"
+    data_path = "https://raw.githubusercontent.com/Ngo-seakyarith/IDS-Project1-Mark3/main/IDS_project_linear/data.csv"
     if os.path.exists(data_path):
         df = pd.read_csv(data_path)
         return df
