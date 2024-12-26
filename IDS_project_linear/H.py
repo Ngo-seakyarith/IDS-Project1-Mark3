@@ -1,9 +1,18 @@
+# Page Config
 import streamlit as st
+
+st.set_page_config(
+    page_title="Data Science Project Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
+
+# Required Imports
 import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestRegressor  # Added import
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
@@ -12,7 +21,6 @@ from sklearn.metrics import mean_squared_error
 def load_data():
     data_path = "https://raw.githubusercontent.com/Ngo-seakyarith/IDS-Project1-Mark3/main/IDS_project_linear/data.csv"
     try:
-        # Read the CSV file from the GitHub URL
         df = pd.read_csv(data_path)
         return df
     except Exception as e:
@@ -20,17 +28,6 @@ def load_data():
         return None
 
 df = load_data()
-
-if df is not None:
-    st.write("Dataset Preview:")
-    st.dataframe(df)
-
-# Page Config
-st.set_page_config(
-    page_title="Data Science Project Dashboard",
-    page_icon="📊",
-    layout="wide"
-)
 
 # Title Section
 st.markdown("""
@@ -83,8 +80,9 @@ with tab2:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("🔥 Correlation Heatmap")
+            numeric_df = df.select_dtypes(include=['float64', 'int64'])
             fig_corr, ax_corr = plt.subplots(figsize=(10, 8))
-            sns.heatmap(df.corr(), annot=True, cmap="coolwarm", ax=ax_corr)
+            sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", ax=ax_corr)
             ax_corr.set_title("Correlation Heatmap of Features", fontsize=16)
             st.pyplot(fig_corr)
         
@@ -148,7 +146,7 @@ with tab2:
             # Generate Pairplot
             with st.spinner("Generating Pairplot..."):
                 pairplot_fig = sns.pairplot(pairplot_df, diag_kind="kde", corner=True)
-                st.pyplot(pairplot_fig)
+                st.pyplot(pairplot_fig.fig)  # Use the .fig attribute to display
     else:
         st.warning("Data not loaded. Please ensure `data.csv` is present and correctly formatted.")
 
