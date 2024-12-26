@@ -3,6 +3,9 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor  # Added import
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 # Load Data
 @st.cache_data
@@ -61,26 +64,6 @@ Explore the sections to dive deeper into exploratory data analysis, model perfor
 """)
 
 with tab2:
-    # Visualizations Section
-    st.header("📊 **Exploratory Data Analysis**")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Correlation Heatmap")
-        heatmap_path = "images/correlation_heatmap.png"
-        if os.path.exists(heatmap_path):
-            st.image(heatmap_path, caption="Correlation Heatmap", use_container_width=True)
-        else:
-            st.warning("Correlation Heatmap image not found.")
-
-        st.subheader("Feature Importance")
-        importance_path = "images/feature_importance.png"
-        if os.path.exists(importance_path):
-            st.image(importance_path, caption="Feature Importance", use_container_width=True)
-        else:
-            st.warning("Feature Importance image not found.")
-
-    with col2:with tab2:
     # Check if df is loaded
     if df is not None:
         st.header("📊 **Exploratory Data Analysis**")
@@ -91,48 +74,48 @@ with tab2:
         
         st.markdown("---")  # Separator
         
-        # Correlation Heatmap
-        st.subheader("🔥 Correlation Heatmap")
-        fig_corr, ax_corr = plt.subplots(figsize=(10, 8))
-        sns.heatmap(df.corr(), annot=True, cmap="coolwarm", ax=ax_corr)
-        ax_corr.set_title("Correlation Heatmap of Features", fontsize=16)
-        st.pyplot(fig_corr)
+        # Correlation Heatmap and Feature Importance in columns
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("🔥 Correlation Heatmap")
+            fig_corr, ax_corr = plt.subplots(figsize=(10, 8))
+            sns.heatmap(df.corr(), annot=True, cmap="coolwarm", ax=ax_corr)
+            ax_corr.set_title("Correlation Heatmap of Features", fontsize=16)
+            st.pyplot(fig_corr)
         
-        st.markdown("---")  # Separator
-        
-        # Feature Importance
-        st.subheader("📈 Feature Importance")
-        
-        # Ensure 'Sales' is your target variable
-        target_variable = 'Sales'  # Change if different
-        if target_variable in df.columns:
-            X = df.drop(target_variable, axis=1)
-            y = df[target_variable]
+        with col2:
+            st.subheader("📈 Feature Importance")
             
-            # Check if all features are numeric
-            if not all(pd.api.types.is_numeric_dtype(dtype) for dtype in X.dtypes):
-                st.warning("All features should be numeric to compute feature importances.")
+            # Ensure 'Sales' is your target variable
+            target_variable = 'Sales'  # Change if different
+            if target_variable in df.columns:
+                X = df.drop(target_variable, axis=1)
+                y = df[target_variable]
+                
+                # Check if all features are numeric
+                if not all(pd.api.types.is_numeric_dtype(dtype) for dtype in X.dtypes):
+                    st.warning("All features should be numeric to compute feature importances.")
+                else:
+                    # Initialize and train the model
+                    model = RandomForestRegressor(random_state=42)
+                    model.fit(X, y)
+                    
+                    # Get feature importances
+                    importances = model.feature_importances_
+                    feature_importance_df = pd.DataFrame({
+                        "Feature": X.columns,
+                        "Importance": importances
+                    }).sort_values(by="Importance", ascending=False)
+                    
+                    # Plot Feature Importances
+                    fig_feat, ax_feat = plt.subplots(figsize=(8, 6))
+                    sns.barplot(data=feature_importance_df, x="Importance", y="Feature", ax=ax_feat, palette="viridis")
+                    ax_feat.set_title("Feature Importance Ranking", fontsize=16)
+                    ax_feat.set_xlabel("Importance")
+                    ax_feat.set_ylabel("Feature")
+                    st.pyplot(fig_feat)
             else:
-                # Initialize and train the model
-                model = RandomForestRegressor(random_state=42)
-                model.fit(X, y)
-                
-                # Get feature importances
-                importances = model.feature_importances_
-                feature_importance_df = pd.DataFrame({
-                    "Feature": X.columns,
-                    "Importance": importances
-                }).sort_values(by="Importance", ascending=False)
-                
-                # Plot Feature Importances
-                fig_feat, ax_feat = plt.subplots(figsize=(8, 6))
-                sns.barplot(data=feature_importance_df, x="Importance", y="Feature", ax=ax_feat, palette="viridis")
-                ax_feat.set_title("Feature Importance Ranking", fontsize=16)
-                ax_feat.set_xlabel("Importance")
-                ax_feat.set_ylabel("Feature")
-                st.pyplot(fig_feat)
-        else:
-            st.warning(f"'{target_variable}' column not found in the dataset. Please verify the target variable name.")
+                st.warning(f"'{target_variable}' column not found in the dataset. Please verify the target variable name.")
         
         st.markdown("---")  # Separator
         
@@ -163,13 +146,6 @@ with tab2:
                 st.pyplot(pairplot_fig)
     else:
         st.warning("Data not loaded. Please ensure `data.csv` is present and correctly formatted.")
-
-        st.subheader("Pairplot")
-        pairplot_path = "images/pairplot.png"
-        if os.path.exists(pairplot_path):
-            st.image(pairplot_path, caption="Pairplot of Variables", use_container_width=True)
-        else:
-            st.warning("Pairplot image not found.")
 
 with tab3:
     # Model Training Summary
