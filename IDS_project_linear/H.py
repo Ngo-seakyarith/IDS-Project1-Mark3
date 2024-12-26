@@ -11,14 +11,19 @@ from sklearn.metrics import mean_squared_error
 @st.cache_data
 def load_data():
     data_path = "https://raw.githubusercontent.com/Ngo-seakyarith/IDS-Project1-Mark3/main/IDS_project_linear/data.csv"
-    if os.path.exists(data_path):
+    try:
+        # Read the CSV file from the GitHub URL
         df = pd.read_csv(data_path)
         return df
-    else:
-        st.error("data.csv not found. Please ensure it's in the project directory.")
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
         return None
 
 df = load_data()
+
+if df is not None:
+    st.write("Dataset Preview:")
+    st.dataframe(df)
 
 # Page Config
 st.set_page_config(
